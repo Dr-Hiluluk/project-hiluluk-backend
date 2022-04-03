@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "commonjs",
+    "sourceMap": true,
+    "outDir": "build",
+    "allowJs": true,
+    "strict": true,
+    "lib": ["ESNext"],
+    "esModuleInterop": true
+  },
+  "include": ["./src/**/*", "index.js"]
+}
