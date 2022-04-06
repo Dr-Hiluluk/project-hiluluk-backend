@@ -20,7 +20,7 @@ app.use((req: Request, res: Response, next: NextFunction) => {
   next();
 });
 
-app.use(router);
+app.use("/api", router);
 
 app.get("/", (req: Request, res: Response) => {
   res.send("Home");
