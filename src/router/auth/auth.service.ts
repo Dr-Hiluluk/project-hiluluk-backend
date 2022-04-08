@@ -30,6 +30,7 @@ class AuthService {
           nickname,
         },
       });
+      return newUser;
       // if (!newUser) {
       //   throw httpError.
       // }
@@ -37,6 +38,7 @@ class AuthService {
       throw new Error(e);
     }
   }
+
   static async login({ email, password }: User) {
     const validateUser = this.validatePassword(email, password);
     return validateUser;
@@ -49,6 +51,7 @@ class AuthService {
       },
     });
   }
+
   static async validatePassword(email: string, password: string) {
     const user = await prisma.user.findUnique({
       where: {

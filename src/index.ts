@@ -2,14 +2,31 @@ import * as dotenv from "dotenv";
 import express, { NextFunction, Request, Response } from "express";
 import cors from "cors";
 import router from "./router";
-
+import cookieParser from "cookie-parser";
+import session from "express-session";
+const FileStore = require("session-file-store")(session);
 dotenv.config();
+
 const app = express();
 const PORT = process.env.PORT;
 
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET_KEY || "TEMP_SECRET_KEY",
+    resave: false,
+    saveUninitialized: true,
+    cookie: {
+      maxAge: 1000 * 60 * 60, // 쿠키 유효기간 1시간
+      httpOnly: false,
+      secure: "auto",
+    },
+    store: new FileStore(),
+  })
+);
 
 app.use((req: Request, res: Response, next: NextFunction) => {
   res.header("Access-Control-Allow-Origin", "*");
@@ -21,10 +38,6 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 });
 
 app.use("/api", router);
-
-app.get("/", (req: Request, res: Response) => {
-  res.send("Home");
-});
 
 if (!PORT) {
   process.exit(1);
