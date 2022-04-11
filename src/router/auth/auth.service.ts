@@ -44,6 +44,15 @@ class AuthService {
     return validateUser;
   }
 
+  static async logout(id?: User["id"]) {
+    const user = await prisma.user.findUnique({
+      where: {
+        id,
+      },
+    });
+    return user;
+  }
+
   static async searchUser(nickname: User["nickname"]) {
     return await prisma.user.findFirst({
       where: {

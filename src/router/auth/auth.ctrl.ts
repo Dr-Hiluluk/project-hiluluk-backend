@@ -1,3 +1,4 @@
+import { User } from "@prisma/client";
 import * as express from "express";
 import { AuthService } from "./auth.service";
 
@@ -42,6 +43,7 @@ class AuthController {
       if (loginUser) {
         if (req.session.user && req.session.user.id !== loginUser.id) {
           req.session.destroy(() => {});
+          res.clearCookie("connect.sid");
         }
         req.session.user = {
           id: loginUser.id,
@@ -54,6 +56,7 @@ class AuthController {
           data: req.session.user,
         });
       } else {
+        res.clearCookie("connect.sid");
         res.status(401).json({
           status: 401,
           message: "로그인 실패",
@@ -61,7 +64,7 @@ class AuthController {
         });
       }
     } catch (e: any) {
-      console.log("e:", e);
+      console.log("loginError:", e);
       res.status(500).json({
         status: 500,
         message: e,
@@ -79,6 +82,25 @@ class AuthController {
       res.status(401).json({
         status: 401,
         message: "로그인 상태가 아닙니다. 다시 로그인 해주세요.",
+      });
+    }
+  }
+
+  static async logout(req: express.Request, res: express.Response) {
+    try {
+      const userId = req.session?.user?.id;
+      const logoutUserInfo = await AuthService.logout(userId);
+      if (logoutUserInfo && logoutUserInfo.id) {
+        req.session.destroy;
+        res.clearCookie("connect.sid");
+        res.status(204).json({
+          status: 204,
+        });
+      }
+    } catch (e) {
+      console.log("Logout Error:", e);
+      res.status(401).json({
+        status: 401,
       });
     }
   }
