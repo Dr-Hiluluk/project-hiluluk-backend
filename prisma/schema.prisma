@@ -32,6 +32,7 @@ model Post {
 
 model Tag {
   id        Int      @id @default(autoincrement())
+  content   String
   count     BigInt   @default(0)
   createdAt DateTime @default(now())
   posts     Post[]   @relation("TagsOnPost")
