@@ -16,4 +16,23 @@ model User {
   name     String
   nickname String @unique
   password String
+  posts    Post[]
+}
+
+model Post {
+  id        Int      @id @default(autoincrement())
+  title     String
+  body      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
+  userId    Int      @unique
+  tags      Tag[]    @relation("TagsOnPost")
+}
+
+model Tag {
+  id        Int      @id @default(autoincrement())
+  count     BigInt   @default(0)
+  createdAt DateTime @default(now())
+  posts     Post[]   @relation("TagsOnPost")
 }
