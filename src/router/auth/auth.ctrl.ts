@@ -86,6 +86,21 @@ class AuthController {
     }
   }
 
+  static authCheck(
+    req: express.Request,
+    res: express.Response,
+    next: express.NextFunction
+  ) {
+    if (req.session.user) {
+      return next();
+    } else {
+      res.status(401).json({
+        status: 401,
+        message: "권한이 없습니다. 다시 로그인 해주세요.",
+      });
+    }
+  }
+
   static async logout(req: express.Request, res: express.Response) {
     try {
       const userId = req.session?.user?.id;
