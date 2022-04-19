@@ -35,9 +35,8 @@ class PostService {
           },
         },
       });
-      console.log("newPostCreate");
     } catch (e: any) {
-      console.log("prisma.post.create");
+      throw new Error(e);
     }
 
     const tagsArr: Tag[] = [];
@@ -66,10 +65,9 @@ class PostService {
                 },
               },
             });
-            console.log("newTagUpdate");
             tagsArr.push(isExist);
           } catch (e: any) {
-            console.log("prisma.tag.update");
+            throw new Error(e);
           }
         } else {
           // 기존에 존재하지 않는 tag일 경우
@@ -87,9 +85,8 @@ class PostService {
               },
             });
             tagsArr.push(newTag);
-            console.log("newTagCreate");
           } catch (e: any) {
-            console.log("prisma.tag.create");
+            throw new Error(e);
           }
         }
       });
@@ -109,7 +106,7 @@ class PostService {
             },
           });
         } catch (e: any) {
-          console.log("prisma.post.update");
+          throw new Error(e);
         }
       });
     }
@@ -163,7 +160,7 @@ class PostService {
             },
           });
         } catch (e: any) {
-          console.log("prisma.tag.delete");
+          throw new Error(e);
         }
       } else {
         try {
@@ -183,10 +180,9 @@ class PostService {
             },
           });
         } catch (e: any) {
-          console.log("prisma.tag.update");
+          throw new Error(e);
         }
       }
-      console.log("tagDelete");
     });
 
     // post 삭제
@@ -197,7 +193,7 @@ class PostService {
         },
       });
     } catch (e: any) {
-      console.log("prisma.post.delete");
+      throw new Error(e);
     }
 
     return {
@@ -251,8 +247,9 @@ class PostService {
           updatedAt: currentTime(),
         },
       });
-      console.log("1");
-    } catch (e: any) {}
+    } catch (e: any) {
+      throw new Error(e);
+    }
     // 기존태그 삭제
     if (searchPost) {
       searchPost.tags.forEach(async (tag) => {
@@ -262,7 +259,6 @@ class PostService {
               id: tag.id,
             },
           });
-          console.log("2");
         } else {
           try {
             await prisma.tag.update({
@@ -280,8 +276,9 @@ class PostService {
                 },
               },
             });
-            console.log("3");
-          } catch (e: any) {}
+          } catch (e: any) {
+            throw new Error(e);
+          }
         }
       });
     }
@@ -301,8 +298,9 @@ class PostService {
               },
             },
           });
-          console.log("4");
-        } catch (e: any) {}
+        } catch (e: any) {
+          throw new Error(e);
+        }
       });
     }
 
@@ -315,7 +313,6 @@ class PostService {
         tags: true,
       },
     });
-    console.log("5");
     return {
       ok: true,
       data: updatedPost,

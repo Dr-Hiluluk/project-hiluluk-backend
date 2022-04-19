@@ -4,8 +4,8 @@ import { PostService } from "./post.service";
 class PostController {
   static async createPost(req: express.Request, res: express.Response) {
     try {
-      const { title, body, tags, userId } = req.body;
-      //const userId = req.session.user?.id;
+      const { title, body, tags } = req.body;
+      const userId = req.session.user?.id;
 
       const createPostStatus = await PostService.createPost({
         title,
