@@ -119,7 +119,14 @@ class PostService {
         id: newPost.id,
       },
       include: {
-        user: true,
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            nickname: true,
+          },
+        },
         tags: true,
       },
     });
