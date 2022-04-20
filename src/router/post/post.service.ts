@@ -14,7 +14,7 @@ const prisma = new PrismaClient();
 class PostService {
   static async createPost({ title, body, tags, userId }: postType) {
     // title, body, UserId 유효성검사 && title 빈문자열 검사
-    if (!(title && body && userId) || /\s/.test(title)) {
+    if (!(title && body && userId) || /^\s/.test(title)) {
       return {
         ok: false,
       };
@@ -36,7 +36,7 @@ class PostService {
         },
       });
     } catch (e: any) {
-      throw new Error(e);
+      console.log(e);
     }
 
     const tagsArr: Tag[] = [];
@@ -67,7 +67,7 @@ class PostService {
             });
             tagsArr.push(isExist);
           } catch (e: any) {
-            throw new Error(e);
+            console.log(e);
           }
         } else {
           // 기존에 존재하지 않는 tag일 경우
@@ -86,7 +86,7 @@ class PostService {
             });
             tagsArr.push(newTag);
           } catch (e: any) {
-            throw new Error(e);
+            console.log(e);
           }
         }
       });
@@ -106,7 +106,7 @@ class PostService {
             },
           });
         } catch (e: any) {
-          throw new Error(e);
+          console.log(e);
         }
       });
     }
@@ -152,7 +152,7 @@ class PostService {
     }
     // 삭제 할 post에 연결된 tag 삭제
     searchPost.tags.forEach(async (tag) => {
-      if (tag.count === 1n) {
+      if (tag.count === 1) {
         try {
           await prisma.tag.delete({
             where: {
@@ -202,9 +202,24 @@ class PostService {
   }
 
   static async readPost(postId: number) {
-    const searchPost = await prisma.post.findUnique({
+    const searchPost = await prisma.post.findFirst({
       where: {
         id: postId,
+      },
+      include: {
+        tags: {
+          select: {
+            content: true,
+          },
+        },
+        user: {
+          select: {
+            id: true,
+            email: true,
+            name: true,
+            nickname: true,
+          },
+        },
       },
     });
     if (!searchPost) {
@@ -253,7 +268,7 @@ class PostService {
     // 기존태그 삭제
     if (searchPost) {
       searchPost.tags.forEach(async (tag) => {
-        if (tag.count === 1n) {
+        if (tag.count === 1) {
           await prisma.tag.delete({
             where: {
               id: tag.id,
