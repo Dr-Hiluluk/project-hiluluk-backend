@@ -13,6 +13,7 @@ class PostController {
         tags,
         userId,
       });
+
       if (!createPostStatus.ok) {
         res.status(400).json({
           status: 400,
@@ -53,8 +54,9 @@ class PostController {
 
   static async readPost(req: express.Request, res: express.Response) {
     try {
-      const { postId } = req.body;
-      const readPostStatus = await PostService.readPost(postId);
+      const { postId } = req.params;
+
+      const readPostStatus = await PostService.readPost(Number(postId));
 
       if (!readPostStatus.ok) {
         res.status(400).json({
@@ -68,7 +70,7 @@ class PostController {
         });
       }
     } catch (e: any) {
-      throw new Error("500", e);
+      console.log("error:", e);
     }
   }
 

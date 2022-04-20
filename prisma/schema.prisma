@@ -26,14 +26,14 @@ model Post {
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now())
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId    Int      
+  userId    Int
   tags      Tag[]    @relation("TagsOnPost")
 }
 
 model Tag {
   id        Int      @id @default(autoincrement())
   content   String
-  count     BigInt   @default(0)
+  count     Int      @default(0)
   createdAt DateTime @default(now())
   posts     Post[]   @relation("TagsOnPost")
 }
