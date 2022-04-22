@@ -16,17 +16,17 @@ class PostController {
 
       if (!createPostStatus.ok) {
         res.status(400).json({
-          status: 400,
-          message: "Post 생성 실패",
+          error: "Post 생성 실패",
         });
       } else {
         res.status(201).json({
-          status: 201,
           data: createPostStatus.data,
         });
       }
     } catch (e: any) {
-      throw new Error("500", e);
+      res.status(500).json({
+        error: e,
+      });
     }
   }
 
@@ -38,17 +38,17 @@ class PostController {
 
       if (!deletePostStatus.ok) {
         res.status(400).json({
-          status: 400,
-          message: "Post 삭제 실패",
+          error: "Post 삭제 실패",
         });
       } else {
         res.status(201).json({
-          status: 201,
-          message: "Post 삭제 성공",
+          error: "Post 삭제 성공",
         });
       }
     } catch (e: any) {
-      throw new Error("500", e);
+      res.status(500).json({
+        error: e,
+      });
     }
   }
 
@@ -59,18 +59,16 @@ class PostController {
       const readPostStatus = await PostService.readPost(Number(postId));
 
       if (!readPostStatus.ok) {
-        res.status(400).json({
-          status: 400,
-          message: "Post 읽기 실패",
-        });
+        res.status(404).json({ error: "Post 읽기 실패" });
       } else {
         res.status(201).json({
-          status: 201,
           data: readPostStatus.data,
         });
       }
     } catch (e: any) {
-      console.log("error:", e);
+      res.status(500).json({
+        error: e,
+      });
     }
   }
 
@@ -86,17 +84,17 @@ class PostController {
 
       if (!updatePostStatus.ok) {
         res.status(400).json({
-          status: 400,
-          message: "Post 업데이트 실패",
+          error: "Post 업데이트 실패",
         });
       } else {
         res.status(201).json({
-          status: 201,
           data: updatePostStatus.data,
         });
       }
     } catch (e: any) {
-      throw new Error("500", e);
+      res.status(500).json({
+        error: e,
+      });
     }
   }
 }
