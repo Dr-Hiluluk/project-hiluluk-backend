@@ -18,8 +18,7 @@ class AuthController {
       const registerStatus = await AuthService.register(user);
       if (registerStatus === 409) {
         res.status(409).json({
-          status: 409,
-          message: "Conflict 회원가입 실패",
+          error: "Conflict 회원가입 실패",
         });
       } else {
         req.session.user = {
@@ -28,12 +27,11 @@ class AuthController {
           nickname: registerStatus.nickname,
         };
         res.status(201).json({
-          status: 201,
           data: req.session.user,
         });
       }
     } catch (e: any) {
-      throw new Error("500:", e);
+      res.status(500).json({ error: e });
     }
   }
   static async login(req: express.Request, res: express.Response) {
@@ -51,23 +49,17 @@ class AuthController {
           nickname: loginUser.nickname,
         };
         res.status(200).json({
-          status: 200,
-          message: "로그인 성공",
           data: req.session.user,
         });
       } else {
         res.clearCookie("connect.sid");
         res.status(401).json({
-          status: 401,
-          message: "로그인 실패",
-          error: loginUser,
+          error: "로그인 실패",
         });
       }
     } catch (e: any) {
-      console.log("loginError:", e);
       res.status(500).json({
-        status: 500,
-        message: e,
+        error: e,
       });
     }
   }
@@ -75,13 +67,11 @@ class AuthController {
   static loginCheck(req: express.Request, res: express.Response) {
     if (req.session.user) {
       res.status(200).json({
-        status: 200,
         data: req.session.user,
       });
     } else {
       res.status(401).json({
-        status: 401,
-        message: "로그인 상태가 아닙니다. 다시 로그인 해주세요.",
+        error: "로그인 상태가 아닙니다. 다시 로그인 해주세요.",
       });
     }
   }
@@ -95,8 +85,7 @@ class AuthController {
       return next();
     } else {
       res.status(401).json({
-        status: 401,
-        message: "권한이 없습니다. 다시 로그인 해주세요.",
+        error: "권한이 없습니다. 다시 로그인 해주세요.",
       });
     }
   }
@@ -108,14 +97,11 @@ class AuthController {
       if (logoutUserInfo && logoutUserInfo.id) {
         req.session.destroy;
         res.clearCookie("connect.sid");
-        res.status(204).json({
-          status: 204,
-        });
+        res.status(204).send();
       }
     } catch (e) {
-      console.log("Logout Error:", e);
       res.status(401).json({
-        status: 401,
+        error: e,
       });
     }
   }
