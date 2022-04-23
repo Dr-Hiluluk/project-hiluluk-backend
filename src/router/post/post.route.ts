@@ -8,5 +8,6 @@ postRouter.post("/", AuthController.authCheck, PostController.createPost);
 postRouter.delete("/", AuthController.authCheck, PostController.deletePost);
 postRouter.get("/:postId", PostController.readPost);
 postRouter.patch("/", AuthController.authCheck, PostController.updatePost);
+postRouter.get("/", PostController.readPostList);
 
 export default postRouter;

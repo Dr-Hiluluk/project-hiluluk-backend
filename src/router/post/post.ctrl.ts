@@ -1,5 +1,30 @@
 import * as express from "express";
 import { PostService } from "./post.service";
+import sanitizeHtml from "sanitize-html";
+
+const sanitizeOption: sanitizeHtml.IOptions | undefined = {
+  allowedTags: [
+    "h1",
+    "h2",
+    "b",
+    "i",
+    "u",
+    "s",
+    "p",
+    "ul",
+    "ol",
+    "li",
+    "blockquote",
+    "a",
+    "img",
+  ],
+  allowedAttributes: {
+    a: ["href", "name", "taget"],
+    img: ["src"],
+    li: ["class"],
+  },
+  allowedSchemes: ["data", "http"],
+};
 
 class PostController {
   static async createPost(req: express.Request, res: express.Response) {
@@ -9,7 +34,7 @@ class PostController {
 
       const createPostStatus = await PostService.createPost({
         title,
-        body,
+        body: sanitizeHtml(body, sanitizeOption),
         tags,
         userId,
       });
@@ -75,10 +100,14 @@ class PostController {
   static async updatePost(req: express.Request, res: express.Response) {
     try {
       const { postId, title, body, tags } = req.body;
+      let filteredBody = body;
+      if (body) {
+        filteredBody = sanitizeHtml(body, sanitizeOption);
+      }
       const updatePostStatus = await PostService.updatePost({
         postId,
         title,
-        body,
+        body: filteredBody,
         tags,
       });
 
@@ -92,6 +121,35 @@ class PostController {
         });
       }
     } catch (e: any) {
+      res.status(500).json({
+        error: e,
+      });
+    }
+  }
+
+  static async readPostList(req: express.Request, res: express.Response) {
+    const removeHtmlAndShorten = (body: string) => {
+      const filteredBody = sanitizeHtml(body, { allowedTags: [] });
+      return filteredBody.length < 200
+        ? filteredBody
+        : `${filteredBody.slice(0, 200)}...`;
+    };
+    try {
+      const postList = await PostService.readPostList();
+      if (postList.length === 0) {
+        res.status(404).json({
+          error: "게시글이 존재하지 않습니다.",
+        });
+      } else {
+        const postListData = postList.map((post) => ({
+          ...post,
+          body: removeHtmlAndShorten(post.body),
+        }));
+        res.status(201).json({
+          data: postListData,
+        });
+      }
+    } catch (e) {
       res.status(500).json({
         error: e,
       });
