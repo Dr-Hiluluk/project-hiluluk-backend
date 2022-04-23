@@ -252,13 +252,13 @@ class PostService {
     }
     // post 업데이트
     try {
-      prisma.post.update({
+      await prisma.post.update({
         where: {
           id: postId,
         },
         data: {
-          title,
-          body,
+          title: title ? title : searchPost.title,
+          body: body ? body : searchPost.body,
           updatedAt: currentTime(),
         },
       });
@@ -332,6 +332,24 @@ class PostService {
       ok: true,
       data: updatedPost,
     };
+  }
+
+  static async readPostList() {
+    const posts = prisma.post.findMany({
+      include: {
+        tags: {
+          select: {
+            content: true,
+          },
+        },
+        user: {
+          select: {
+            nickname: true,
+          },
+        },
+      },
+    });
+    return posts;
   }
 }
 
