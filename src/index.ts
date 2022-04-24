@@ -4,6 +4,7 @@ import cors from "cors";
 import router from "./router";
 import cookieParser from "cookie-parser";
 import session from "express-session";
+import createFakeData from "./createFakeData";
 const FileStore = require("session-file-store")(session);
 dotenv.config();
 
@@ -36,6 +37,8 @@ app.use((req: Request, res: Response, next: NextFunction) => {
   );
   next();
 });
+
+// createFakeData();
 
 app.use("/api", router);
 
