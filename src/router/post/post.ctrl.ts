@@ -135,7 +135,14 @@ class PostController {
         : `${filteredBody.slice(0, 200)}...`;
     };
     try {
-      const postList = await PostService.readPostList();
+      const page = req.query.page || 1;
+      if (page < 1) {
+        res.status(400).json({
+          error: "Bad Request",
+        });
+      }
+      const postList = await PostService.readPostList(page);
+      const totalPostCount = await PostService.totalPostCount();
       if (postList.length === 0) {
         res.status(404).json({
           error: "게시글이 존재하지 않습니다.",
@@ -145,6 +152,8 @@ class PostController {
           ...post,
           body: removeHtmlAndShorten(post.body),
         }));
+
+        res.header("Last-Page", Math.ceil(totalPostCount / 10).toString());
         res.status(201).json({
           data: postListData,
         });
