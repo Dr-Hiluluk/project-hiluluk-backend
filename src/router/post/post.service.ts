@@ -334,7 +334,7 @@ class PostService {
     };
   }
 
-  static async readPostList(page: any) {
+  static async readPostList(takeNumber: number, page: number) {
     const posts = prisma.post.findMany({
       include: {
         tags: {
@@ -351,8 +351,8 @@ class PostService {
       orderBy: {
         id: "desc",
       },
-      take: 10,
-      skip: (page - 1) * 10,
+      take: takeNumber,
+      skip: (page - 1) * takeNumber,
     });
     return posts;
   }

@@ -130,18 +130,20 @@ class PostController {
   static async readPostList(req: express.Request, res: express.Response) {
     const removeHtmlAndShorten = (body: string) => {
       const filteredBody = sanitizeHtml(body, { allowedTags: [] });
-      return filteredBody.length < 200
+      const limitLength = 130;
+      return filteredBody.length < limitLength
         ? filteredBody
-        : `${filteredBody.slice(0, 200)}...`;
+        : `${filteredBody.slice(0, limitLength)}...`;
     };
     try {
-      const page = req.query.page || 1;
+      const takeNumber = 12;
+      const page = parseInt(req.query.page as string, 10) || 1;
       if (page < 1) {
         res.status(400).json({
           error: "Bad Request",
         });
       }
-      const postList = await PostService.readPostList(page);
+      const postList = await PostService.readPostList(takeNumber, page);
       const totalPostCount = await PostService.totalPostCount();
       if (postList.length === 0) {
         res.status(404).json({
@@ -153,7 +155,10 @@ class PostController {
           body: removeHtmlAndShorten(post.body),
         }));
 
-        res.header("Last-Page", Math.ceil(totalPostCount / 10).toString());
+        res.header(
+          "last-page",
+          Math.ceil(totalPostCount / takeNumber).toString()
+        );
         res.status(201).json({
           data: postListData,
         });
