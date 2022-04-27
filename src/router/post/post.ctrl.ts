@@ -57,8 +57,10 @@ class PostController {
 
   static async deletePost(req: express.Request, res: express.Response) {
     try {
-      const { postId } = req.body;
-
+      const postId = req.params.postId ? parseInt(req.params.postId, 10) : null;
+      if (!postId) {
+        throw new Error("postId가 존재하지 않습니다.");
+      }
       const deletePostStatus = await PostService.deletePost(postId);
 
       if (!deletePostStatus.ok) {
@@ -138,7 +140,7 @@ class PostController {
         : `${filteredBody.slice(0, limitLength)}...`;
     };
     try {
-      const takeNumber = 12;
+      const takeNumber = 20;
       const page = parseInt(req.query.page as string, 10) || 1;
       if (page < 1) {
         return res.status(400).json({

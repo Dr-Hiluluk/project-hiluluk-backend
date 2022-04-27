@@ -5,7 +5,11 @@ import { PostController } from "./post.ctrl";
 const postRouter: Router = express.Router();
 
 postRouter.post("/", AuthController.authCheck, PostController.createPost);
-postRouter.delete("/", AuthController.authCheck, PostController.deletePost);
+postRouter.delete(
+  "/:postId",
+  AuthController.authCheck,
+  PostController.deletePost
+);
 postRouter.get("/:postId", PostController.readPost);
 postRouter.patch(
   "/:postId",
