@@ -36,7 +36,7 @@ class PostService {
         },
       });
     } catch (e: any) {
-      console.log(e);
+      console.error(e);
     }
 
     const tagsArr: Tag[] = [];
@@ -67,7 +67,7 @@ class PostService {
             });
             tagsArr.push(isExist);
           } catch (e: any) {
-            console.log(e);
+            console.error(e);
           }
         } else {
           // 기존에 존재하지 않는 tag일 경우
@@ -86,7 +86,7 @@ class PostService {
             });
             tagsArr.push(newTag);
           } catch (e: any) {
-            console.log(e);
+            console.error(e);
           }
         }
       });
@@ -106,7 +106,7 @@ class PostService {
             },
           });
         } catch (e: any) {
-          console.log(e);
+          console.error(e);
         }
       });
     }
@@ -124,7 +124,11 @@ class PostService {
             nickname: true,
           },
         },
-        tags: true,
+        tags: {
+          orderBy: {
+            content: "asc",
+          },
+        },
       },
     });
 
@@ -160,7 +164,7 @@ class PostService {
             },
           });
         } catch (e: any) {
-          throw new Error(e);
+          console.error(e);
         }
       } else {
         try {
@@ -180,7 +184,7 @@ class PostService {
             },
           });
         } catch (e: any) {
-          throw new Error(e);
+          console.error(e);
         }
       }
     });
@@ -193,7 +197,7 @@ class PostService {
         },
       });
     } catch (e: any) {
-      throw new Error(e);
+      console.error(e);
     }
 
     return {
@@ -210,6 +214,9 @@ class PostService {
         tags: {
           select: {
             content: true,
+          },
+          orderBy: {
+            content: "asc",
           },
         },
         user: {
@@ -257,23 +264,27 @@ class PostService {
           id: postId,
         },
         data: {
-          title: title ? title : searchPost.title,
-          body: body ? body : searchPost.body,
+          ...(title && { title: title }),
+          ...(body && { body: body }),
           updatedAt: currentTime(),
         },
       });
     } catch (e: any) {
-      throw new Error(e);
+      console.error(e);
     }
     // 기존태그 삭제
     if (searchPost) {
       searchPost.tags.forEach(async (tag) => {
         if (tag.count === 1) {
-          await prisma.tag.delete({
-            where: {
-              id: tag.id,
-            },
-          });
+          try {
+            await prisma.tag.delete({
+              where: {
+                id: tag.id,
+              },
+            });
+          } catch (e) {
+            console.error(e);
+          }
         } else {
           try {
             await prisma.tag.update({
@@ -292,7 +303,7 @@ class PostService {
               },
             });
           } catch (e: any) {
-            throw new Error(e);
+            console.error(e);
           }
         }
       });
@@ -314,7 +325,7 @@ class PostService {
             },
           });
         } catch (e: any) {
-          throw new Error(e);
+          console.error(e);
         }
       });
     }
@@ -325,7 +336,11 @@ class PostService {
       },
       include: {
         user: true,
-        tags: true,
+        tags: {
+          orderBy: {
+            content: "asc",
+          },
+        },
       },
     });
     return {
@@ -335,6 +350,8 @@ class PostService {
   }
 
   static async readPostList(takeNumber: number, page: number) {
+    // 페이지 방식으로 구현
+    // take: 받을 게시글 수, skip: 지나칠 게시글 수(페이지 변동으로 인해)
     const posts = prisma.post.findMany({
       include: {
         tags: {
