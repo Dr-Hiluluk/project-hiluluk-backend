@@ -99,7 +99,9 @@ class PostController {
 
   static async updatePost(req: express.Request, res: express.Response) {
     try {
-      const { postId, title, body, tags } = req.body;
+      const postId = parseInt(req.params.postId, 10);
+      const { title, body, tags } = req.body;
+
       let filteredBody = body;
       if (body) {
         filteredBody = sanitizeHtml(body, sanitizeOption);
@@ -139,14 +141,14 @@ class PostController {
       const takeNumber = 12;
       const page = parseInt(req.query.page as string, 10) || 1;
       if (page < 1) {
-        res.status(400).json({
+        return res.status(400).json({
           error: "Bad Request",
         });
       }
       const postList = await PostService.readPostList(takeNumber, page);
       const totalPostCount = await PostService.totalPostCount();
       if (postList.length === 0) {
-        res.status(404).json({
+        return res.status(404).json({
           error: "게시글이 존재하지 않습니다.",
         });
       } else {
@@ -159,7 +161,7 @@ class PostController {
           "last-page",
           Math.ceil(totalPostCount / takeNumber).toString()
         );
-        res.status(201).json({
+        return res.status(201).json({
           data: postListData,
         });
       }
