@@ -4,7 +4,7 @@ import { currentTime } from "../../utils/utils";
 interface postType {
   title: string;
   body: string;
-  tags?: string[];
+  tags?: Tag[];
   userId?: number;
   postId?: number;
 }
@@ -44,7 +44,7 @@ class PostService {
       tags.forEach(async (tag) => {
         const isExist = await prisma.tag.findFirst({
           where: {
-            content: tag,
+            content: tag.content,
           },
         });
         // 기존에 존재하는 tag일 경우
@@ -75,7 +75,7 @@ class PostService {
             const newTag = await prisma.tag.create({
               data: {
                 createdAt: currentTime(),
-                content: tag,
+                content: tag.content,
                 count: 1,
                 posts: {
                   connect: {
@@ -315,7 +315,7 @@ class PostService {
           await prisma.tag.create({
             data: {
               createdAt: currentTime(),
-              content: tag,
+              content: tag.content,
               count: 1,
               posts: {
                 connect: {
