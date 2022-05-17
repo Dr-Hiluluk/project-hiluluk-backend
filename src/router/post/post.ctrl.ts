@@ -26,6 +26,21 @@ const sanitizeOption: sanitizeHtml.IOptions | undefined = {
   allowedSchemes: ["data", "http"],
 };
 
+const removeHtmlAndShorten = (body: string) => {
+  const filteredBody = sanitizeHtml(body, { allowedTags: [] });
+  const limitLength = 130;
+  return filteredBody.length < limitLength
+    ? filteredBody
+    : `${filteredBody.slice(0, limitLength)}...`;
+};
+
+const shortenTitle = (title: string) => {
+  const limitLength = 10;
+  return title.length > limitLength
+    ? `${title.slice(0, limitLength)}...`
+    : title;
+};
+
 class PostController {
   static async createPost(req: express.Request, res: express.Response) {
     try {
@@ -132,13 +147,6 @@ class PostController {
   }
 
   static async readPostList(req: express.Request, res: express.Response) {
-    const removeHtmlAndShorten = (body: string) => {
-      const filteredBody = sanitizeHtml(body, { allowedTags: [] });
-      const limitLength = 130;
-      return filteredBody.length < limitLength
-        ? filteredBody
-        : `${filteredBody.slice(0, limitLength)}...`;
-    };
     try {
       const takeNumber = 20;
       const page = parseInt(req.query.page as string, 10) || 1;
@@ -156,6 +164,7 @@ class PostController {
       } else {
         const postListData = postList.map((post) => ({
           ...post,
+          title: shortenTitle(post.title),
           body: removeHtmlAndShorten(post.body),
         }));
 
