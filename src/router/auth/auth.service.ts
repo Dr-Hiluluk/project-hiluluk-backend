@@ -62,16 +62,16 @@ class AuthService {
   }
 
   static async validatePassword(email: string, password: string) {
-    const user = await prisma.user.findUnique({
-      where: {
-        email,
-      },
-    });
-    if (!user) {
-      return null;
+    try {
+      const user = await prisma.user.findUnique({
+        where: {
+          email,
+        },
+      });
+      return user?.password === hash(password) ? user : null;
+    } catch (e: any) {
+      console.error(`ValidatePasswrod Error:${e.message}`);
     }
-
-    return user?.password === hash(password) ? user : null;
   }
 }
 
