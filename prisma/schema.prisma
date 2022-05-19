@@ -16,8 +16,8 @@ model User {
   name        String
   nickname    String    @unique
   password    String
-  thumbnail   String
-  description String
+  thumbnail   String    @default("")
+  description String    @default("")
   posts       Post[]
   comments    Comment[]
 }
