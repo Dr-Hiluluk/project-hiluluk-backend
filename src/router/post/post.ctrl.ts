@@ -59,9 +59,7 @@ class PostController {
           error: "Post 생성 실패",
         });
       } else {
-        res.status(201).json({
-          data: createPostStatus.data,
-        });
+        res.status(201).json(createPostStatus.data);
       }
     } catch (e: any) {
       res.status(500).json({
@@ -83,9 +81,7 @@ class PostController {
           error: "Post 삭제 실패",
         });
       } else {
-        res.status(201).json({
-          error: "Post 삭제 성공",
-        });
+        res.status(200).json("Post 삭제 성공");
       }
     } catch (e: any) {
       res.status(500).json({
@@ -97,15 +93,12 @@ class PostController {
   static async readPost(req: express.Request, res: express.Response) {
     try {
       const { postId } = req.params;
-
       const readPostStatus = await PostService.readPost(Number(postId));
 
       if (!readPostStatus.ok) {
         res.status(404).json({ error: "Post 읽기 실패" });
       } else {
-        res.status(201).json({
-          data: readPostStatus.data,
-        });
+        res.status(200).json(readPostStatus.data);
       }
     } catch (e: any) {
       res.status(500).json({
@@ -135,9 +128,7 @@ class PostController {
           error: "Post 업데이트 실패",
         });
       } else {
-        res.status(201).json({
-          data: updatePostStatus.data,
-        });
+        res.status(201).json(updatePostStatus.data);
       }
     } catch (e: any) {
       res.status(500).json({
@@ -149,6 +140,7 @@ class PostController {
   static async readPostList(req: express.Request, res: express.Response) {
     try {
       const takeNumber = 20;
+
       const page = parseInt(req.query.page as string, 10) || 1;
       if (page < 1) {
         return res.status(400).json({
@@ -172,9 +164,7 @@ class PostController {
           "last-page",
           Math.ceil(totalPostCount / takeNumber).toString()
         );
-        return res.status(201).json({
-          data: postListData,
-        });
+        return res.status(200).json(postListData);
       }
     } catch (e) {
       res.status(500).json({
