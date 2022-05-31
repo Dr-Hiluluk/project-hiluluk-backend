@@ -6,9 +6,3 @@ export const hash = (password) => {
     .update(password)
     .digest("hex");
 };
-
-export const currentTime = () => {
-  let time = new Date();
-  time.setHours(time.getHours() + 9);
-  return time;
-};
