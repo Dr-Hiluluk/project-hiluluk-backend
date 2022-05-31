@@ -15,19 +15,26 @@ class AuthController {
   static async register(req: express.Request, res: express.Response) {
     try {
       const user = req.body;
-      const registerStatus = await AuthService.register(user);
-      if (registerStatus === 409) {
-        res.status(409).json({
+      const result = await AuthService.register(user);
+      if (result.status === 409) {
+        return res.status(409).json({
           error: "Conflict 회원가입 실패",
         });
-      } else {
-        req.session.user = {
-          id: registerStatus.id,
-          name: registerStatus.name,
-          nickname: registerStatus.nickname,
-        };
-        res.status(201).json(req.session.user);
       }
+      if (!result.ok) {
+        return res.status(400).json("회원가입 실패");
+      }
+      if (result.data) {
+        const {
+          data: { id, name, nickname },
+        } = result;
+        req.session.user = {
+          id: id,
+          name: name,
+          nickname: nickname,
+        };
+      }
+      return res.status(201).json(req.session.user);
     } catch (e: any) {
       res.status(500).json({ error: e });
     }
@@ -87,11 +94,14 @@ class AuthController {
   static async logout(req: express.Request, res: express.Response) {
     try {
       const userId = req.session?.user?.id;
-      const logoutUserInfo = await AuthService.logout(userId);
-      if (logoutUserInfo && logoutUserInfo.id) {
+      const result = await AuthService.logout(userId);
+      if (!result.ok) {
+        return res.status(400).json("로그아웃 실패");
+      }
+      if (result.data) {
         req.session.destroy;
         res.clearCookie("connect.sid");
-        res.status(204).send();
+        return res.status(204).send();
       }
     } catch (e) {
       res.status(401).json({

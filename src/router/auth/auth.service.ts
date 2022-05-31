@@ -1,12 +1,11 @@
-import { PrismaClient, User } from "@prisma/client";
+import { User } from "@prisma/client";
+import client from "../../client";
 import { hash } from "../../utils/utils";
-
-const prisma = new PrismaClient();
 
 class AuthService {
   static async register({ email, password, name, nickname }: User) {
     try {
-      const isExist = await prisma.user.findMany({
+      const isExist = await client.user.findMany({
         where: {
           OR: [
             {
@@ -18,11 +17,13 @@ class AuthService {
           ],
         },
       });
-
       if (isExist.length) {
-        return 409;
+        return {
+          ok: false,
+          status: 409,
+        };
       }
-      const newUser = await prisma.user.create({
+      const newUser = await client.user.create({
         data: {
           email,
           password: hash(password),
@@ -30,12 +31,16 @@ class AuthService {
           nickname,
         },
       });
-      return newUser;
-      // if (!newUser) {
-      //   throw httpError.
-      // }
+
+      return {
+        ok: true,
+        data: newUser,
+      };
     } catch (e: any) {
-      throw new Error(e);
+      console.error(e);
+      return {
+        ok: false,
+      };
     }
   }
 
@@ -45,25 +50,46 @@ class AuthService {
   }
 
   static async logout(id?: User["id"]) {
-    const user = await prisma.user.findUnique({
-      where: {
-        id,
-      },
-    });
-    return user;
+    try {
+      const user = await client.user.findUnique({
+        where: {
+          id,
+        },
+      });
+      return {
+        ok: true,
+        data: user,
+      };
+    } catch (e) {
+      console.error(e);
+      return {
+        ok: false,
+      };
+    }
   }
 
   static async searchUser(nickname: User["nickname"]) {
-    return await prisma.user.findFirst({
-      where: {
-        nickname,
-      },
-    });
+    try {
+      const user = await client.user.findFirst({
+        where: {
+          nickname,
+        },
+      });
+      return {
+        ok: true,
+        data: user,
+      };
+    } catch (e) {
+      console.error(e);
+      return {
+        ok: false,
+      };
+    }
   }
 
   static async validatePassword(email: string, password: string) {
     try {
-      const user = await prisma.user.findUnique({
+      const user = await client.user.findUnique({
         where: {
           email,
         },
