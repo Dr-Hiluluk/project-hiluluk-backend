@@ -1,4 +1,5 @@
-import { PrismaClient, Tag } from "@prisma/client";
+import { Tag } from "@prisma/client";
+import client from "../../client";
 
 interface postType {
   title: string;
@@ -7,9 +8,6 @@ interface postType {
   userId?: number;
   postId?: number;
 }
-
-const prisma = new PrismaClient();
-
 class PostService {
   static async createPost({ title, body, tags, userId }: postType) {
     // title, body, UserId 유효성검사 && title 빈문자열 검사
@@ -21,7 +19,7 @@ class PostService {
 
     let newPost: any;
     try {
-      newPost = await prisma.post.create({
+      newPost = await client.post.create({
         data: {
           title,
           body,
@@ -41,7 +39,7 @@ class PostService {
     const tagsArr: Tag[] = [];
     if (tags?.length) {
       tags.forEach(async (tag) => {
-        const isExist = await prisma.tag.findFirst({
+        const isExist = await client.tag.findFirst({
           where: {
             content: tag.content,
           },
@@ -49,7 +47,7 @@ class PostService {
         // 기존에 존재하는 tag일 경우
         if (isExist) {
           try {
-            await prisma.tag.update({
+            await client.tag.update({
               where: {
                 id: isExist.id,
               },
@@ -71,7 +69,7 @@ class PostService {
         } else {
           // 기존에 존재하지 않는 tag일 경우
           try {
-            const newTag = await prisma.tag.create({
+            const newTag = await client.tag.create({
               data: {
                 createdAt: new Date(),
                 content: tag.content,
@@ -92,7 +90,7 @@ class PostService {
       //생성된 tag를 post에 업데이트
       tagsArr.forEach(async (tag) => {
         try {
-          await prisma.post.update({
+          await client.post.update({
             where: {
               id: newPost.id,
             },
@@ -110,7 +108,7 @@ class PostService {
       });
     }
 
-    const createdPost = await prisma.post.findFirst({
+    const createdPost = await client.post.findFirst({
       where: {
         id: newPost.id,
       },
@@ -139,7 +137,7 @@ class PostService {
 
   static async deletePost(postId: number) {
     // 삭제 할 post의 id 찾기
-    const searchPost = await prisma.post.findUnique({
+    const searchPost = await client.post.findUnique({
       where: {
         id: postId,
       },
@@ -157,7 +155,7 @@ class PostService {
     searchPost.tags.forEach(async (tag) => {
       if (tag.count === 1) {
         try {
-          await prisma.tag.delete({
+          await client.tag.delete({
             where: {
               id: tag.id,
             },
@@ -167,7 +165,7 @@ class PostService {
         }
       } else {
         try {
-          await prisma.tag.update({
+          await client.tag.update({
             where: {
               id: tag.id,
             },
@@ -190,7 +188,7 @@ class PostService {
 
     // post 삭제
     try {
-      await prisma.post.delete({
+      await client.post.delete({
         where: {
           id: searchPost.id,
         },
@@ -205,7 +203,7 @@ class PostService {
   }
 
   static async readPost(postId: number) {
-    const searchPost = await prisma.post.findFirst({
+    const searchPost = await client.post.findFirst({
       where: {
         id: postId,
       },
@@ -243,7 +241,7 @@ class PostService {
 
   static async updatePost({ postId, title, body, tags }: postType) {
     // 업데이트할 post의 id 찾기
-    const searchPost = await prisma.post.findUnique({
+    const searchPost = await client.post.findUnique({
       where: {
         id: postId,
       },
@@ -259,7 +257,7 @@ class PostService {
     }
     // post 업데이트
     try {
-      await prisma.post.update({
+      await client.post.update({
         where: {
           id: postId,
         },
@@ -277,7 +275,7 @@ class PostService {
       searchPost.tags.forEach(async (tag) => {
         if (tag.count === 1) {
           try {
-            await prisma.tag.delete({
+            await client.tag.delete({
               where: {
                 id: tag.id,
               },
@@ -287,7 +285,7 @@ class PostService {
           }
         } else {
           try {
-            await prisma.tag.update({
+            await client.tag.update({
               where: {
                 id: tag.id,
               },
@@ -312,7 +310,7 @@ class PostService {
     if (tags) {
       tags.forEach(async (tag) => {
         try {
-          await prisma.tag.create({
+          await client.tag.create({
             data: {
               createdAt: new Date(),
               content: tag.content,
@@ -330,7 +328,7 @@ class PostService {
       });
     }
 
-    const updatedPost = await prisma.post.findFirst({
+    const updatedPost = await client.post.findFirst({
       where: {
         id: searchPost.id,
       },
@@ -352,7 +350,7 @@ class PostService {
   static async readPostList(takeNumber: number, page: number) {
     // 페이지 방식으로 구현
     // take: 받을 게시글 수, skip: 지나칠 게시글 수(페이지 변동으로 인해)
-    const posts = prisma.post.findMany({
+    const posts = client.post.findMany({
       include: {
         tags: {
           select: {
@@ -375,7 +373,7 @@ class PostService {
   }
 
   static async totalPostCount() {
-    return prisma.post.count();
+    return client.post.count();
   }
 }
 
