@@ -1,5 +1,4 @@
 import { PrismaClient, Tag } from "@prisma/client";
-import { currentTime } from "../../utils/utils";
 
 interface postType {
   title: string;
@@ -26,8 +25,8 @@ class PostService {
         data: {
           title,
           body,
-          createdAt: currentTime(),
-          updatedAt: currentTime(),
+          createdAt: new Date(),
+          updatedAt: new Date(),
           user: {
             connect: {
               id: userId,
@@ -74,7 +73,7 @@ class PostService {
           try {
             const newTag = await prisma.tag.create({
               data: {
-                createdAt: currentTime(),
+                createdAt: new Date(),
                 content: tag.content,
                 count: 1,
                 posts: {
@@ -229,6 +228,7 @@ class PostService {
         },
       },
     });
+
     if (!searchPost) {
       return {
         ok: false,
@@ -266,7 +266,7 @@ class PostService {
         data: {
           ...(title && { title: title }),
           ...(body && { body: body }),
-          updatedAt: currentTime(),
+          updatedAt: new Date(),
         },
       });
     } catch (e: any) {
@@ -314,7 +314,7 @@ class PostService {
         try {
           await prisma.tag.create({
             data: {
-              createdAt: currentTime(),
+              createdAt: new Date(),
               content: tag.content,
               count: 1,
               posts: {

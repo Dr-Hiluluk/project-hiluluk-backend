@@ -26,9 +26,7 @@ class AuthController {
           name: registerStatus.name,
           nickname: registerStatus.nickname,
         };
-        res.status(201).json({
-          data: req.session.user,
-        });
+        res.status(201).json(req.session.user);
       }
     } catch (e: any) {
       res.status(500).json({ error: e });
@@ -48,9 +46,7 @@ class AuthController {
           name: loginUser.name,
           nickname: loginUser.nickname,
         };
-        res.status(200).json({
-          data: req.session.user,
-        });
+        res.status(200).json(req.session.user);
       } else {
         res.clearCookie("connect.sid");
         res.status(401).json({
@@ -66,9 +62,7 @@ class AuthController {
 
   static loginCheck(req: express.Request, res: express.Response) {
     if (req.session.user) {
-      res.status(200).json({
-        data: req.session.user,
-      });
+      res.status(200).json(req.session.user);
     } else {
       res.status(401).json({
         error: "로그인 상태가 아닙니다. 다시 로그인 해주세요.",

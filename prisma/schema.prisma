@@ -16,22 +16,24 @@ model User {
   name        String
   nickname    String    @unique
   password    String
-  thumbnail   String    @default("")
-  description String    @default("")
+  thumbnail   String?
+  description String?
+
   posts       Post[]
   comments    Comment[]
 }
 
 model Post {
-  id        Int       @id @default(autoincrement())
-  title     String
-  body      String
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @default(now())
-  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId    Int
-  tags      Tag[]     @relation("TagsOnPost")
-  comments  Comment[]
+  id             Int       @id @default(autoincrement())
+  title          String
+  body           String
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @default(now())
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId         Int
+  tags           Tag[]     @relation("TagsOnPost")
+  comments       Comment[]
+  comments_count Int       @default(0)
 }
 
 model Tag {
@@ -54,4 +56,7 @@ model Comment {
   parentId  Int?
   createdAt DateTime
   updatedAt DateTime
+  path      Int[]
+  isDeleted Boolean   @default(false)
+  count     Int       @default(0)
 }
