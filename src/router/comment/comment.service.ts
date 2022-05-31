@@ -269,7 +269,7 @@ class CommentService {
               },
             },
           });
-          console.log("path:", deletedComment);
+
           // 삭제시 부모댓글 count 컬럼 갯수 조정
           if (comment?.parentId) {
             await client.comment.update({
