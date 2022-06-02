@@ -15,7 +15,7 @@ class CommentService {
     content,
   }: CommentType) {
     try {
-      let parent = null;
+      let parent;
       if (parentId) {
         try {
           parent = await client.comment.findFirst({
@@ -33,8 +33,7 @@ class CommentService {
           };
         }
       }
-
-      const newComment = await client.comment.create({
+      const comment = await client.comment.create({
         data: {
           content,
           postId,
@@ -42,7 +41,7 @@ class CommentService {
           ...(parentId && { parentId: parentId }),
           createdAt: new Date(),
           updatedAt: new Date(),
-          ...(parent && parentId && { path: parent.path }),
+          ...(parent && parentId && { path: [...parent.path, parentId] }),
         },
         include: {
           user: {
@@ -66,21 +65,11 @@ class CommentService {
         },
       });
 
-      //  path에 댓글 id 추가
-      await client.comment.update({
-        where: {
-          id: newComment.id,
-        },
-        data: {
-          path: [...newComment.path, newComment.id],
-        },
-      });
-
-      if (newComment.path[0]) {
+      if (comment.path[0]) {
         try {
           await client.comment.update({
             where: {
-              id: newComment.path[0],
+              id: comment.path[0],
             },
             data: {
               count: {
@@ -116,7 +105,7 @@ class CommentService {
 
       return {
         ok: true,
-        data: newComment,
+        data: comment,
       };
     } catch (e) {
       console.error(e);
@@ -130,7 +119,16 @@ class CommentService {
     try {
       const comments = await client.comment.findMany({
         where: {
-          postId,
+          AND: [
+            {
+              postId,
+            },
+            {
+              parentId: {
+                equals: null,
+              },
+            },
+          ],
         },
         include: {
           user: {
@@ -140,12 +138,27 @@ class CommentService {
               thumbnail: true,
             },
           },
+          children: {
+            where: {
+              id: 0,
+            },
+            include: {
+              user: {
+                select: {
+                  id: true,
+                  nickname: true,
+                  thumbnail: true,
+                },
+              },
+            },
+          },
         },
         orderBy: {
-          path: "asc",
+          createdAt: "asc",
         },
       });
-
+      // const comments =
+      //   await client.$queryRaw`SELECT children FROM "Comment" WHERE "postId" = ${postId}`;
       return {
         ok: true,
         data: comments,
