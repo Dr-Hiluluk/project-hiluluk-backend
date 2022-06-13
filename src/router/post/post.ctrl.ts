@@ -112,14 +112,10 @@ class PostController {
       const postId = parseInt(req.params.postId, 10);
       const { title, body, tags } = req.body;
 
-      let filteredBody = body;
-      if (body) {
-        filteredBody = sanitizeHtml(body, sanitizeOption);
-      }
       const updatePostStatus = await PostService.updatePost({
         postId,
         title,
-        body: filteredBody,
+        body,
         tags,
       });
 
