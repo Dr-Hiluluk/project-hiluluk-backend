@@ -11,16 +11,17 @@ datasource db {
 }
 
 model User {
-  id          Int       @id @default(autoincrement())
-  email       String    @unique
+  id          Int     @id @default(autoincrement())
+  email       String  @unique
   name        String
-  nickname    String    @unique
+  nickname    String  @unique
   password    String
   thumbnail   String?
   description String?
 
-  posts       Post[]
-  comments    Comment[]
+  posts    Post[]
+  comments Comment[]
+  Images   Image[]
 }
 
 model Post {
@@ -59,4 +60,16 @@ model Comment {
   path      Int[]
   isDeleted Boolean   @default(false)
   count     Int       @default(0)
+}
+
+model Image {
+  id        Int      @id @default(autoincrement())
+  type      String
+  user      User     @relation(fields: [userId], references: [id])
+  userId    Int
+  filesize  Int
+  refId     Int
+  createdAt DateTime
+  updatedAt DateTime
+  path      String
 }
