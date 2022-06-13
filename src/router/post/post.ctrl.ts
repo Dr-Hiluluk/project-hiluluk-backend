@@ -111,7 +111,6 @@ class PostController {
     try {
       const postId = parseInt(req.params.postId, 10);
       const { title, body, tags } = req.body;
-      console.log("req.body.body:", req.body.body);
 
       const updatePostStatus = await PostService.updatePost({
         postId,
