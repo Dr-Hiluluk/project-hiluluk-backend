@@ -35,6 +35,7 @@ model Post {
   tags           Tag[]     @relation("TagsOnPost")
   comments       Comment[]
   comments_count Int       @default(0)
+  thumbnail      String?
 }
 
 model Tag {

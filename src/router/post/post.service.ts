@@ -7,9 +7,10 @@ interface postType {
   tags?: Tag[];
   userId?: number;
   postId?: number;
+  thumbnail?: string;
 }
 class PostService {
-  static async createPost({ title, body, tags, userId }: postType) {
+  static async createPost({ title, body, tags, userId, thumbnail }: postType) {
     // title, body, UserId 유효성검사 && title 빈문자열 검사
     if (!(title && body && userId) || /^\s/.test(title)) {
       return {
@@ -30,6 +31,7 @@ class PostService {
               id: userId,
             },
           },
+          ...(thumbnail && { thumbnail: thumbnail }),
         },
       });
     } catch (e: any) {
@@ -239,7 +241,7 @@ class PostService {
     }
   }
 
-  static async updatePost({ postId, title, body, tags }: postType) {
+  static async updatePost({ postId, title, body, tags, thumbnail }: postType) {
     // 업데이트할 post의 id 찾기
     const searchPost = await client.post.findUnique({
       where: {
@@ -264,6 +266,7 @@ class PostService {
         data: {
           ...(title && { title: title }),
           ...(body && { body: body }),
+          ...(thumbnail && { thumbnail: thumbnail }),
           updatedAt: new Date(),
         },
       });
