@@ -44,7 +44,7 @@ const shortenTitle = (title: string) => {
 class PostController {
   static async createPost(req: express.Request, res: express.Response) {
     try {
-      const { title, body, tags } = req.body;
+      const { title, body, tags, thumbnail } = req.body;
       const userId = req.session.user?.id;
 
       const createPostStatus = await PostService.createPost({
@@ -52,6 +52,7 @@ class PostController {
         body: sanitizeHtml(body, sanitizeOption),
         tags,
         userId,
+        thumbnail,
       });
 
       if (!createPostStatus.ok) {
@@ -110,13 +111,14 @@ class PostController {
   static async updatePost(req: express.Request, res: express.Response) {
     try {
       const postId = parseInt(req.params.postId, 10);
-      const { title, body, tags } = req.body;
+      const { title, body, tags, thumbnail } = req.body;
 
       const updatePostStatus = await PostService.updatePost({
         postId,
         title,
         body,
         tags,
+        thumbnail,
       });
 
       if (!updatePostStatus.ok) {
