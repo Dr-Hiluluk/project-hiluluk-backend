@@ -1,10 +1,10 @@
 import express, { Router } from "express";
 import { AuthController } from "./auth.ctrl";
 
-const userRouter: Router = express.Router();
+const authRouter: Router = express.Router();
 
-userRouter.post("/register", AuthController.register);
-userRouter.post("/login", AuthController.login);
-userRouter.get("/check", AuthController.loginCheck);
-userRouter.post("/logout", AuthController.logout);
-export default userRouter;
+authRouter.post("/register", AuthController.register);
+authRouter.post("/login", AuthController.login);
+authRouter.get("/check", AuthController.loginCheck);
+authRouter.post("/logout", AuthController.logout);
+export default authRouter;
