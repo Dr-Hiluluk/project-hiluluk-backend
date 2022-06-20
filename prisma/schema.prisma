@@ -21,7 +21,8 @@ model User {
 
   posts    Post[]
   comments Comment[]
-  Images   Image[]
+  images   Image[]
+  memos    Memo[]
 }
 
 model Post {
@@ -73,4 +74,15 @@ model Image {
   createdAt DateTime
   updatedAt DateTime
   path      String
+}
+
+model Memo {
+  id        Int      @id @default(autoincrement())
+  user      User     @relation(fields: [userId], references: [id])
+  refDate   String
+  userId    Int
+  content   String
+  createdAt DateTime
+  updatedAt DateTime
+  openType  String   @default("public")
 }
