@@ -1,5 +1,6 @@
 import { User } from "@prisma/client";
 import * as express from "express";
+import client from "../../client";
 import { AuthService } from "./auth.service";
 
 declare module "express-session" {
@@ -8,6 +9,8 @@ declare module "express-session" {
       id: number;
       nickname: string;
       name: string;
+      description: string | null;
+      thumbnail: string | null;
     };
   }
 }
@@ -26,12 +29,14 @@ class AuthController {
       }
       if (result.data) {
         const {
-          data: { id, name, nickname },
+          data: { id, name, nickname, description, thumbnail },
         } = result;
         req.session.user = {
           id: id,
           name: name,
           nickname: nickname,
+          description: description,
+          thumbnail: thumbnail,
         };
       }
       return res.status(201).json(req.session.user);
@@ -52,6 +57,8 @@ class AuthController {
           id: loginUser.id,
           name: loginUser.name,
           nickname: loginUser.nickname,
+          description: loginUser.description,
+          thumbnail: loginUser.thumbnail,
         };
         res.status(200).json(req.session.user);
       } else {
@@ -67,9 +74,21 @@ class AuthController {
     }
   }
 
-  static loginCheck(req: express.Request, res: express.Response) {
+  static async loginCheck(req: express.Request, res: express.Response) {
     if (req.session.user) {
-      res.status(200).json(req.session.user);
+      const user = await client.user.findFirst({
+        where: {
+          id: req.session.user.id,
+        },
+        select: {
+          id: true,
+          name: true,
+          nickname: true,
+          description: true,
+          thumbnail: true,
+        },
+      });
+      res.status(200).json(user);
     } else {
       res.status(401).json({
         error: "로그인 상태가 아닙니다. 다시 로그인 해주세요.",
