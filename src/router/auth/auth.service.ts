@@ -29,6 +29,7 @@ class AuthService {
           password: hash(password),
           name,
           nickname,
+          description: `안녕하세요. ${nickname}입니다.`,
         },
       });
 
