@@ -137,73 +137,6 @@ class PostService {
     };
   }
 
-  static async deletePost(postId: number) {
-    // 삭제 할 post의 id 찾기
-    const searchPost = await client.post.findUnique({
-      where: {
-        id: postId,
-      },
-      include: {
-        tags: true,
-      },
-    });
-    // postId 찾기 실패 시 false
-    if (!searchPost) {
-      return {
-        ok: false,
-      };
-    }
-    // 삭제 할 post에 연결된 tag 삭제
-    searchPost.tags.forEach(async (tag) => {
-      if (tag.count === 1) {
-        try {
-          await client.tag.delete({
-            where: {
-              id: tag.id,
-            },
-          });
-        } catch (e: any) {
-          console.error(e);
-        }
-      } else {
-        try {
-          await client.tag.update({
-            where: {
-              id: tag.id,
-            },
-            data: {
-              count: {
-                decrement: 1,
-              },
-              posts: {
-                disconnect: {
-                  id: searchPost.id,
-                },
-              },
-            },
-          });
-        } catch (e: any) {
-          console.error(e);
-        }
-      }
-    });
-
-    // post 삭제
-    try {
-      await client.post.delete({
-        where: {
-          id: searchPost.id,
-        },
-      });
-    } catch (e: any) {
-      console.error(e);
-    }
-
-    return {
-      ok: true,
-    };
-  }
-
   static async readPost(postId: number) {
     const searchPost = await client.post.findFirst({
       where: {
@@ -239,6 +172,44 @@ class PostService {
         data: searchPost,
       };
     }
+  }
+  static async readPostList(
+    takeNumber: number,
+    page: number,
+    nickname: string
+  ) {
+    // 페이지 방식으로 구현
+    // take: 받을 게시글 수, skip: 지나칠 게시글 수(페이지 변동으로 인해)
+    const posts = client.post.findMany({
+      ...(nickname && {
+        where: {
+          user: {
+            nickname: nickname,
+          },
+        },
+      }),
+      include: {
+        tags: {
+          select: {
+            content: true,
+          },
+        },
+        user: {
+          select: {
+            id: true,
+            nickname: true,
+            description: true,
+            thumbnail: true,
+          },
+        },
+      },
+      orderBy: {
+        id: "desc",
+      },
+      take: takeNumber,
+      skip: (page - 1) * takeNumber,
+    });
+    return posts;
   }
 
   static async updatePost({ postId, title, body, tags, thumbnail }: postType) {
@@ -350,29 +321,71 @@ class PostService {
     };
   }
 
-  static async readPostList(takeNumber: number, page: number) {
-    // 페이지 방식으로 구현
-    // take: 받을 게시글 수, skip: 지나칠 게시글 수(페이지 변동으로 인해)
-    const posts = client.post.findMany({
+  static async deletePost(postId: number) {
+    // 삭제 할 post의 id 찾기
+    const searchPost = await client.post.findUnique({
+      where: {
+        id: postId,
+      },
       include: {
-        tags: {
-          select: {
-            content: true,
-          },
-        },
-        user: {
-          select: {
-            nickname: true,
-          },
-        },
+        tags: true,
       },
-      orderBy: {
-        id: "desc",
-      },
-      take: takeNumber,
-      skip: (page - 1) * takeNumber,
     });
-    return posts;
+    // postId 찾기 실패 시 false
+    if (!searchPost) {
+      return {
+        ok: false,
+      };
+    }
+    // 삭제 할 post에 연결된 tag 삭제
+    searchPost.tags.forEach(async (tag) => {
+      if (tag.count === 1) {
+        try {
+          await client.tag.delete({
+            where: {
+              id: tag.id,
+            },
+          });
+        } catch (e: any) {
+          console.error(e);
+        }
+      } else {
+        try {
+          await client.tag.update({
+            where: {
+              id: tag.id,
+            },
+            data: {
+              count: {
+                decrement: 1,
+              },
+              posts: {
+                disconnect: {
+                  id: searchPost.id,
+                },
+              },
+            },
+          });
+        } catch (e: any) {
+          console.error(e);
+        }
+      }
+    });
+
+    // post 삭제
+    try {
+      await client.post.delete({
+        where: {
+          id: searchPost.id,
+        },
+      });
+    } catch (e: any) {
+      console.error(e);
+    }
+
+    return {
+      ok: true,
+    };
   }
 
   static async totalPostCount() {

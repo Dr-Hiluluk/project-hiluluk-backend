@@ -1,6 +1,7 @@
 import * as express from "express";
 import { PostService } from "./post.service";
 import sanitizeHtml from "sanitize-html";
+import { removeHtmlAndShorten, shortenTitle } from "../shared";
 
 const sanitizeOption: sanitizeHtml.IOptions | undefined = {
   allowedTags: [
@@ -24,21 +25,6 @@ const sanitizeOption: sanitizeHtml.IOptions | undefined = {
     li: ["class"],
   },
   allowedSchemes: ["data", "http"],
-};
-
-const removeHtmlAndShorten = (body: string) => {
-  const filteredBody = sanitizeHtml(body, { allowedTags: [] });
-  const limitLength = 130;
-  return filteredBody.length < limitLength
-    ? filteredBody
-    : `${filteredBody.slice(0, limitLength)}...`;
-};
-
-const shortenTitle = (title: string) => {
-  const limitLength = 10;
-  return title.length > limitLength
-    ? `${title.slice(0, limitLength)}...`
-    : title;
 };
 
 class PostController {
@@ -69,28 +55,6 @@ class PostController {
     }
   }
 
-  static async deletePost(req: express.Request, res: express.Response) {
-    try {
-      const postId = req.params.postId ? parseInt(req.params.postId, 10) : null;
-      if (!postId) {
-        throw new Error("postId가 존재하지 않습니다.");
-      }
-      const deletePostStatus = await PostService.deletePost(postId);
-
-      if (!deletePostStatus.ok) {
-        res.status(400).json({
-          error: "Post 삭제 실패",
-        });
-      } else {
-        res.status(200).json("Post 삭제 성공");
-      }
-    } catch (e: any) {
-      res.status(500).json({
-        error: e,
-      });
-    }
-  }
-
   static async readPost(req: express.Request, res: express.Response) {
     try {
       const { postId } = req.params;
@@ -102,6 +66,46 @@ class PostController {
         res.status(200).json(readPostStatus.data);
       }
     } catch (e: any) {
+      res.status(500).json({
+        error: e,
+      });
+    }
+  }
+
+  static async readPostList(req: express.Request, res: express.Response) {
+    try {
+      const takeNumber = 20;
+      const nickname = req.query.nickname as string;
+      const page = parseInt(req.query.page as string, 10) || 1;
+      if (page < 1) {
+        return res.status(400).json({
+          error: "Bad Request",
+        });
+      }
+      const postList = await PostService.readPostList(
+        takeNumber,
+        page,
+        nickname
+      );
+      const totalPostCount = await PostService.totalPostCount();
+      if (postList.length === 0) {
+        return res.status(404).json({
+          error: "게시글이 존재하지 않습니다.",
+        });
+      } else {
+        const postListData = postList.map((post) => ({
+          ...post,
+          title: shortenTitle(post.title),
+          body: removeHtmlAndShorten(post.body),
+        }));
+
+        res.header(
+          "last-page",
+          Math.ceil(totalPostCount / takeNumber).toString()
+        );
+        return res.status(200).json(postListData);
+      }
+    } catch (e) {
       res.status(500).json({
         error: e,
       });
@@ -135,36 +139,22 @@ class PostController {
     }
   }
 
-  static async readPostList(req: express.Request, res: express.Response) {
+  static async deletePost(req: express.Request, res: express.Response) {
     try {
-      const takeNumber = 20;
-
-      const page = parseInt(req.query.page as string, 10) || 1;
-      if (page < 1) {
-        return res.status(400).json({
-          error: "Bad Request",
-        });
+      const postId = req.params.postId ? parseInt(req.params.postId, 10) : null;
+      if (!postId) {
+        throw new Error("postId가 존재하지 않습니다.");
       }
-      const postList = await PostService.readPostList(takeNumber, page);
-      const totalPostCount = await PostService.totalPostCount();
-      if (postList.length === 0) {
-        return res.status(404).json({
-          error: "게시글이 존재하지 않습니다.",
+      const deletePostStatus = await PostService.deletePost(postId);
+
+      if (!deletePostStatus.ok) {
+        res.status(400).json({
+          error: "Post 삭제 실패",
         });
       } else {
-        const postListData = postList.map((post) => ({
-          ...post,
-          title: shortenTitle(post.title),
-          body: removeHtmlAndShorten(post.body),
-        }));
-
-        res.header(
-          "last-page",
-          Math.ceil(totalPostCount / takeNumber).toString()
-        );
-        return res.status(200).json(postListData);
+        res.status(200).json("Post 삭제 성공");
       }
-    } catch (e) {
+    } catch (e: any) {
       res.status(500).json({
         error: e,
       });
