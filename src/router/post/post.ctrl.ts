@@ -35,7 +35,7 @@ class PostController {
 
       const createPostStatus = await PostService.createPost({
         title,
-        body: sanitizeHtml(body, sanitizeOption),
+        body,
         tags,
         userId,
         thumbnail,
@@ -109,6 +109,19 @@ class PostController {
       res.status(500).json({
         error: e,
       });
+    }
+  }
+
+  static async searchPostList(req: express.Request, res: express.Response) {
+    try {
+      const word = req.query.word as string;
+      const result = await PostService.searchPostList({ word });
+      if (!result.ok) {
+        return res.status(404).send(result.error);
+      }
+      return res.status(200).json(result.data);
+    } catch (e) {
+      return res.status(500).send(e);
     }
   }
 
