@@ -4,6 +4,7 @@ import { PostController } from "./post.ctrl";
 
 const postRouter: Router = express.Router();
 
+postRouter.get("/search", PostController.searchPostList);
 postRouter.post("/", AuthController.authCheck, PostController.createPost);
 postRouter.delete(
   "/:postId",

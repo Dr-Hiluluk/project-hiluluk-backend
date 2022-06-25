@@ -11,7 +11,7 @@ class UserController {
     try {
       const result = await UserService.getUserProfileByNickname(nickname);
       if (!result.ok) {
-        return res.status(404).send(result.error);
+        return res.status(404).json({ error: result.error });
       }
 
       result.data?.posts.forEach((post) => {
@@ -19,9 +19,9 @@ class UserController {
         post.body = removeHtmlAndShorten(post.body);
       });
 
-      return res.status(200).json(result.data);
+      return res.status(200).send(result.data);
     } catch (e) {
-      return res.status(500).send(e);
+      return res.status(500).json({ error: e });
     }
   }
 
@@ -39,11 +39,11 @@ class UserController {
         password,
       });
       if (!result.ok) {
-        return res.status(400).send(result.error);
+        return res.status(400).json({ error: result.error });
       }
-      return res.status(200).json(result.data);
+      return res.status(200).send(result.data);
     } catch (e) {
-      return res.status(500).send(e);
+      return res.status(500).json({ error: e });
     }
   }
 
@@ -52,11 +52,11 @@ class UserController {
     try {
       const result = await UserService.deleteUser({ id: Number(userId) });
       if (!result.ok) {
-        return res.status(400).send(result.error);
+        return res.status(400).json({ error: result.error });
       }
-      return res.status(200).send();
+      return res.status(200).end();
     } catch (e) {
-      return res.status(500).send(e);
+      return res.status(500).json({ error: e });
     }
   }
 }

@@ -100,6 +100,7 @@ class MemoService {
       });
       return {
         ok: true,
+        data: memo,
       };
     } catch (e) {
       return {

@@ -4,23 +4,21 @@ import MemoService from "./memo.service";
 class MemoController {
   static async createMemo(req: express.Request, res: express.Response) {
     const { refDate, content } = req.body;
-    const user = req.session.user;
-    if (user) {
-      try {
-        const result = await MemoService.createMemo({
-          userId: user.id,
-          content: content,
-          refDate,
-        });
-        if (!result.ok) {
-          return res.status(400).json(result.error);
-        }
-        return res.status(201).json(result.data);
-      } catch (e) {
-        return res.status(500).send(e);
+    const {
+      user: { id },
+    } = res.locals;
+    try {
+      const result = await MemoService.createMemo({
+        userId: id,
+        content: content,
+        refDate,
+      });
+      if (!result.ok) {
+        return res.status(400).json(result.error);
       }
-    } else {
-      return res.status(401).send();
+      return res.status(201).json(result.data);
+    } catch (e) {
+      return res.status(500).send(e);
     }
   }
 
@@ -33,7 +31,7 @@ class MemoController {
         yearMonth,
       });
       if (!result.ok) {
-        return res.status(400).send(result.error);
+        return res.status(400).json({ error: result.error });
       }
       return res.status(200).json(result.data);
     } catch (e) {
@@ -47,7 +45,7 @@ class MemoController {
     try {
       const result = await MemoService.updateMemo({ id: memoId, content });
       if (!result.ok) {
-        return res.status(400).send(result.error);
+        return res.status(400).json({ error: result.error });
       }
       return res.status(201).send(result.data);
     } catch (e) {
@@ -60,9 +58,9 @@ class MemoController {
     try {
       const result = await MemoService.deleteMemo({ id: Number(memoId) });
       if (!result.ok) {
-        return res.status(400).send(result.error);
+        return res.status(400).send({ error: result.error });
       }
-      return res.status(200);
+      return res.status(200).send(result.data);
     } catch (e) {
       return res.status(500).send(e);
     }

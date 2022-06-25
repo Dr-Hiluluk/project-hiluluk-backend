@@ -1,36 +1,10 @@
 import * as express from "express";
 import { PostService } from "./post.service";
-import sanitizeHtml from "sanitize-html";
 import { removeHtmlAndShorten, shortenTitle } from "../shared";
-
-const sanitizeOption: sanitizeHtml.IOptions | undefined = {
-  allowedTags: [
-    "h1",
-    "h2",
-    "b",
-    "i",
-    "u",
-    "s",
-    "p",
-    "ul",
-    "ol",
-    "li",
-    "blockquote",
-    "a",
-    "img",
-  ],
-  allowedAttributes: {
-    a: ["href", "name", "taget"],
-    img: ["src"],
-    li: ["class"],
-  },
-  allowedSchemes: ["data", "http"],
-};
-
 class PostController {
   static async createPost(req: express.Request, res: express.Response) {
     try {
-      const { title, body, tags, thumbnail } = req.body;
+      const { title, body, tags, thumbnail, categoryId } = req.body;
       const userId = req.session.user?.id;
 
       const createPostStatus = await PostService.createPost({
@@ -39,17 +13,17 @@ class PostController {
         tags,
         userId,
         thumbnail,
+        categoryId,
       });
 
       if (!createPostStatus.ok) {
-        res.status(400).json({
+        return res.status(400).json({
           error: "Post 생성 실패",
         });
-      } else {
-        res.status(201).json(createPostStatus.data);
       }
+      return res.status(201).send(createPostStatus.data);
     } catch (e: any) {
-      res.status(500).json({
+      return res.status(500).json({
         error: e,
       });
     }
@@ -61,20 +35,19 @@ class PostController {
       const readPostStatus = await PostService.readPost(Number(postId));
 
       if (!readPostStatus.ok) {
-        res.status(404).json({ error: "Post 읽기 실패" });
-      } else {
-        res.status(200).json(readPostStatus.data);
+        return res.status(404).json({ error: "Post 읽기 실패" });
       }
+      return res.status(200).send(readPostStatus.data);
     } catch (e: any) {
-      res.status(500).json({
+      return res.status(500).json({
         error: e,
       });
     }
   }
 
   static async readPostList(req: express.Request, res: express.Response) {
+    const takeNumber = 20;
     try {
-      const takeNumber = 20;
       const nickname = req.query.nickname as string;
       const page = parseInt(req.query.page as string, 10) || 1;
       if (page < 1) {
@@ -82,44 +55,58 @@ class PostController {
           error: "Bad Request",
         });
       }
-      const postList = await PostService.readPostList(
-        takeNumber,
-        page,
-        nickname
-      );
+      const result = await PostService.readPostList(takeNumber, page, nickname);
       const totalPostCount = await PostService.totalPostCount();
-      if (postList.length === 0) {
+      if (!result.ok) {
         return res.status(404).json({
-          error: "게시글이 존재하지 않습니다.",
+          error: result.error || "게시글이 존재하지 않습니다.",
         });
-      } else {
-        const postListData = postList.map((post) => ({
-          ...post,
-          title: shortenTitle(post.title),
-          body: removeHtmlAndShorten(post.body),
-        }));
-
-        res.header(
-          "last-page",
-          Math.ceil(totalPostCount / takeNumber).toString()
-        );
-        return res.status(200).json(postListData);
       }
+
+      const postListData = result.data?.map((post) => ({
+        ...post,
+        title: shortenTitle(post.title),
+        body: removeHtmlAndShorten(post.body),
+      }));
+
+      res.header(
+        "last-page",
+        Math.ceil(totalPostCount / takeNumber).toString()
+      );
+      return res.status(200).json(postListData);
     } catch (e) {
-      res.status(500).json({
+      return res.status(500).json({
         error: e,
       });
     }
   }
 
   static async searchPostList(req: express.Request, res: express.Response) {
+    const takeNumber = 20;
     try {
       const word = req.query.word as string;
-      const result = await PostService.searchPostList({ word });
+      const page = Number(req.query.page) || 1;
+      const result = await PostService.searchPostList({
+        word,
+        page,
+        takeNumber,
+      });
       if (!result.ok) {
-        return res.status(404).send(result.error);
+        return res.status(404).json({ error: result.error });
       }
-      return res.status(200).json(result.data);
+      const postListData = result.data
+        ?.map((post) => ({
+          ...post,
+          title: shortenTitle(post.title),
+          body: removeHtmlAndShorten(post.body),
+        }))
+        .sort((a, b) => b.id - a.id);
+      res.header(
+        "last-page",
+        Math.ceil((result.totalPostCount || 0) / takeNumber).toString()
+      );
+      res.header("total-post-count", (result.totalPostCount || 0).toString());
+      return res.status(200).json(postListData);
     } catch (e) {
       return res.status(500).send(e);
     }
@@ -139,14 +126,13 @@ class PostController {
       });
 
       if (!updatePostStatus.ok) {
-        res.status(400).json({
+        return res.status(400).json({
           error: "Post 업데이트 실패",
         });
-      } else {
-        res.status(201).json(updatePostStatus.data);
       }
+      return res.status(201).json(updatePostStatus.data);
     } catch (e: any) {
-      res.status(500).json({
+      return res.status(500).json({
         error: e,
       });
     }
