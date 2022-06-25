@@ -8,9 +8,17 @@ interface postType {
   userId?: number;
   postId?: number;
   thumbnail?: string;
+  categoryId?: number;
 }
 class PostService {
-  static async createPost({ title, body, tags, userId, thumbnail }: postType) {
+  static async createPost({
+    title,
+    body,
+    tags,
+    userId,
+    thumbnail,
+    categoryId,
+  }: postType) {
     // title, body, UserId 유효성검사 && title 빈문자열 검사
     if (!(title && body && userId) || /^\s/.test(title)) {
       return {
@@ -32,6 +40,7 @@ class PostService {
             },
           },
           ...(thumbnail && { thumbnail: thumbnail }),
+          categoryId,
         },
       });
     } catch (e: any) {
@@ -180,36 +189,140 @@ class PostService {
   ) {
     // 페이지 방식으로 구현
     // take: 받을 게시글 수, skip: 지나칠 게시글 수(페이지 변동으로 인해)
-    const posts = client.post.findMany({
-      ...(nickname && {
-        where: {
+    try {
+      const posts = await client.post.findMany({
+        ...(nickname && {
+          where: {
+            user: {
+              nickname: nickname,
+            },
+          },
+        }),
+        include: {
+          tags: {
+            select: {
+              content: true,
+            },
+          },
           user: {
-            nickname: nickname,
+            select: {
+              id: true,
+              nickname: true,
+              description: true,
+              thumbnail: true,
+            },
           },
         },
-      }),
-      include: {
-        tags: {
-          select: {
-            content: true,
+        orderBy: {
+          id: "desc",
+        },
+        take: takeNumber,
+        skip: (page - 1) * takeNumber,
+      });
+      return {
+        ok: true,
+        data: posts,
+      };
+    } catch (e) {
+      return {
+        ok: false,
+        error: e,
+      };
+    }
+  }
+
+  static async searchPostList({
+    word,
+    page,
+    takeNumber,
+  }: {
+    word: string;
+    page: number;
+    takeNumber: number;
+  }) {
+    try {
+      const post = await client.post.findMany({
+        where: {
+          OR: [
+            {
+              title: {
+                startsWith: word,
+              },
+            },
+            {
+              body: {
+                startsWith: word,
+              },
+            },
+            {
+              tags: {
+                some: {
+                  content: {
+                    startsWith: word,
+                  },
+                },
+              },
+            },
+          ],
+        },
+        include: {
+          tags: {
+            select: {
+              content: true,
+            },
+          },
+          user: {
+            select: {
+              id: true,
+              nickname: true,
+              description: true,
+              thumbnail: true,
+            },
           },
         },
-        user: {
-          select: {
-            id: true,
-            nickname: true,
-            description: true,
-            thumbnail: true,
-          },
+        orderBy: {
+          createdAt: "desc",
         },
-      },
-      orderBy: {
-        id: "desc",
-      },
-      take: takeNumber,
-      skip: (page - 1) * takeNumber,
-    });
-    return posts;
+        take: takeNumber,
+        skip: (page - 1) * takeNumber,
+      });
+
+      const totalPostCount = await client.post.count({
+        where: {
+          OR: [
+            {
+              title: {
+                startsWith: word,
+              },
+            },
+            {
+              body: {
+                startsWith: word,
+              },
+            },
+            {
+              tags: {
+                some: {
+                  content: {
+                    startsWith: word,
+                  },
+                },
+              },
+            },
+          ],
+        },
+      });
+      return {
+        ok: true,
+        data: post,
+        totalPostCount: totalPostCount,
+      };
+    } catch (e) {
+      return {
+        ok: false,
+        error: e,
+      };
+    }
   }
 
   static async updatePost({ postId, title, body, tags, thumbnail }: postType) {
@@ -242,7 +355,10 @@ class PostService {
         },
       });
     } catch (e: any) {
-      console.error(e);
+      return {
+        ok: false,
+        error: e,
+      };
     }
     // 기존태그 삭제
     if (searchPost) {
@@ -255,7 +371,10 @@ class PostService {
               },
             });
           } catch (e) {
-            console.error(e);
+            return {
+              ok: false,
+              error: e,
+            };
           }
         } else {
           try {
@@ -275,7 +394,10 @@ class PostService {
               },
             });
           } catch (e: any) {
-            console.error(e);
+            return {
+              ok: false,
+              error: e,
+            };
           }
         }
       });
@@ -297,7 +419,10 @@ class PostService {
             },
           });
         } catch (e: any) {
-          console.error(e);
+          return {
+            ok: false,
+            error: e,
+          };
         }
       });
     }
@@ -347,7 +472,10 @@ class PostService {
             },
           });
         } catch (e: any) {
-          console.error(e);
+          return {
+            ok: false,
+            error: e,
+          };
         }
       } else {
         try {
@@ -367,7 +495,10 @@ class PostService {
             },
           });
         } catch (e: any) {
-          console.error(e);
+          return {
+            ok: false,
+            error: e,
+          };
         }
       }
     });
@@ -380,7 +511,10 @@ class PostService {
         },
       });
     } catch (e: any) {
-      console.error(e);
+      return {
+        ok: false,
+        error: e,
+      };
     }
 
     return {
