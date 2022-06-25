@@ -44,9 +44,9 @@ class FileService {
         },
       };
     } catch (e) {
-      console.error(e);
       return {
         ok: false,
+        error: e,
       };
     }
   }
@@ -110,9 +110,9 @@ class FileService {
         data: location,
       };
     } catch (e) {
-      console.error(e);
       return {
         ok: false,
+        error: e,
       };
     }
   }
