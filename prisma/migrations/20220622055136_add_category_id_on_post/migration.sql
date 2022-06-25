@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "Post" ADD COLUMN     "categoryId" INTEGER NOT NULL DEFAULT 0;
