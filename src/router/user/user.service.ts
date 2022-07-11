@@ -1,5 +1,6 @@
 import client from "../../client";
 import { hash } from "../../utils/utils";
+import { PostService } from "../post/post.service";
 
 class UserService {
   static async getUserProfileByNickname(nickname: string) {
@@ -76,11 +77,79 @@ class UserService {
 
   static async deleteUser({ id }: { id: number }) {
     try {
+      // // 부모 댓글인 경우, 내용만 삭제
+      // await client.comment.updateMany({
+      //   where: {
+      //     AND: [
+      //       {
+      //         userId: id,
+      //       },
+      //       {
+      //         parentId: {
+      //           equals: null,
+      //         },
+      //       },
+      //     ],
+      //   },
+      //   data: {
+      //     isDeleted: true,
+      //     content: "삭제된 댓글입니다.",
+      //   },
+      // });
+
+      // // 대댓글인 경우, 삭제
+      // await client.comment.deleteMany({
+      //   where: {
+      //     AND: [
+      //       {
+      //         userId: id,
+      //       },
+      //       {
+      //         parentId: {
+      //           not: null,
+      //         },
+      //       },
+      //     ],
+      //   },
+      // });
+
+      const posts = await client.post.findMany({
+        where: {
+          userId: id,
+        },
+        select: {
+          id: true,
+        },
+      });
+
+      await client.comment.updateMany({
+        where: {
+          userId: id,
+        },
+        data: {
+          isDeleted: true,
+          content: "삭제된 댓글입니다.",
+        },
+      });
+
+      posts.forEach(
+        async (post) =>
+          await client.comment.deleteMany({ where: { postId: post.id } })
+      );
+
       const user = await client.user.delete({
         where: {
           id,
         },
+        include: {
+          posts: {
+            select: {
+              id: true,
+            },
+          },
+        },
       });
+
       return {
         ok: true,
       };

@@ -54,6 +54,8 @@ class UserController {
       if (!result.ok) {
         return res.status(400).json({ error: result.error });
       }
+      req.session.destroy(() => {});
+      res.clearCookie("connect.sid");
       return res.status(200).end();
     } catch (e) {
       return res.status(500).json({ error: e });
