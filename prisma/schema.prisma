@@ -51,10 +51,10 @@ model Tag {
 model Comment {
   id        Int       @id @default(autoincrement())
   content   String
-  user      User      @relation(fields: [userId], references: [id])
-  userId    Int
-  post      Post      @relation(fields: [postId], references: [id])
-  postId    Int
+  user      User?     @relation(fields: [userId], references: [id])
+  userId    Int?
+  post      Post?     @relation(fields: [postId], references: [id])
+  postId    Int?
   children  Comment[] @relation("Parent_Children")
   parent    Comment?  @relation("Parent_Children", fields: [parentId], references: [id])
   parentId  Int?
@@ -68,7 +68,7 @@ model Comment {
 model Image {
   id        Int      @id @default(autoincrement())
   type      String
-  user      User     @relation(fields: [userId], references: [id])
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId    Int
   filesize  Int
   refId     Int
@@ -79,7 +79,7 @@ model Image {
 
 model Memo {
   id        Int      @id @default(autoincrement())
-  user      User     @relation(fields: [userId], references: [id])
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   refDate   String
   userId    Int
   content   String
