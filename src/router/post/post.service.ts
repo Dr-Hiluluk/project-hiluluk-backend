@@ -214,7 +214,7 @@ class PostService {
           },
         },
         orderBy: {
-          id: "desc",
+          createdAt: "desc",
         },
         take: takeNumber,
         skip: (page - 1) * takeNumber,
@@ -325,7 +325,14 @@ class PostService {
     }
   }
 
-  static async updatePost({ postId, title, body, tags, thumbnail }: postType) {
+  static async updatePost({
+    categoryId,
+    postId,
+    title,
+    body,
+    tags,
+    thumbnail,
+  }: postType) {
     // 업데이트할 post의 id 찾기
     const searchPost = await client.post.findUnique({
       where: {
@@ -348,6 +355,7 @@ class PostService {
           id: postId,
         },
         data: {
+          ...(categoryId && { categoryId }),
           ...(title && { title: title }),
           ...(body && { body: body }),
           ...(thumbnail && { thumbnail: thumbnail }),
@@ -460,6 +468,7 @@ class PostService {
     if (!searchPost) {
       return {
         ok: false,
+        error: "postId가 존재하지 않습니다.",
       };
     }
     // 삭제 할 post에 연결된 tag 삭제

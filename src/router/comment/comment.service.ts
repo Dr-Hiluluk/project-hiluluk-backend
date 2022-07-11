@@ -312,7 +312,7 @@ class CommentService {
       try {
         await client.post.update({
           where: {
-            id: comment?.postId,
+            ...(comment?.postId && { id: comment?.postId }),
           },
           data: {
             comments_count: {
