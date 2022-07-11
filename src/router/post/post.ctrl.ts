@@ -115,9 +115,10 @@ class PostController {
   static async updatePost(req: express.Request, res: express.Response) {
     try {
       const postId = parseInt(req.params.postId, 10);
-      const { title, body, tags, thumbnail } = req.body;
+      const { title, body, tags, thumbnail,categoryId } = req.body;
 
       const updatePostStatus = await PostService.updatePost({
+        categoryId,
         postId,
         title,
         body,
