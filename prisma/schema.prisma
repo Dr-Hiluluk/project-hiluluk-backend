@@ -38,6 +38,7 @@ model Post {
   comments       Comment[]
   comments_count Int       @default(0)
   thumbnail      String?
+  is_temp        Boolean   @default(false)
 }
 
 model Tag {

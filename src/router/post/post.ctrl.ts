@@ -4,7 +4,7 @@ import { removeHtmlAndShorten, shortenTitle } from "../shared";
 class PostController {
   static async createPost(req: express.Request, res: express.Response) {
     try {
-      const { title, body, tags, thumbnail, categoryId } = req.body;
+      const { title, body, tags, thumbnail, categoryId, is_temp } = req.body;
       const userId = req.session.user?.id;
 
       const createPostStatus = await PostService.createPost({
@@ -14,6 +14,7 @@ class PostController {
         userId,
         thumbnail,
         categoryId,
+        is_temp,
       });
 
       if (!createPostStatus.ok) {
@@ -115,7 +116,7 @@ class PostController {
   static async updatePost(req: express.Request, res: express.Response) {
     try {
       const postId = parseInt(req.params.postId, 10);
-      const { title, body, tags, thumbnail,categoryId } = req.body;
+      const { title, body, tags, thumbnail, categoryId, is_temp } = req.body;
 
       const updatePostStatus = await PostService.updatePost({
         categoryId,
@@ -124,6 +125,7 @@ class PostController {
         body,
         tags,
         thumbnail,
+        is_temp,
       });
 
       if (!updatePostStatus.ok) {

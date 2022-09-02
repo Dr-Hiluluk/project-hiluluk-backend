@@ -137,7 +137,7 @@ class UserService {
           await client.comment.deleteMany({ where: { postId: post.id } })
       );
 
-      const user = await client.user.delete({
+      await client.user.delete({
         where: {
           id,
         },
