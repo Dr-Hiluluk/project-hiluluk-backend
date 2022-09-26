@@ -19,26 +19,29 @@ model User {
   thumbnail   String?
   description String?
 
-  posts    Post[]
-  comments Comment[]
-  images   Image[]
-  memos    Memo[]
+  posts     Post[]
+  comments  Comment[]
+  images    Image[]
+  memos     Memo[]
+  bookmarks Bookmark[]
 }
 
 model Post {
-  id             Int       @id @default(autoincrement())
-  categoryId     Int       @default(0)
+  id             Int        @id @default(autoincrement())
+  categoryId     Int        @default(0)
   title          String
   body           String
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @default(now())
-  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @default(now())
+  user           User       @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId         Int
-  tags           Tag[]     @relation("TagsOnPost")
+  tags           Tag[]      @relation("TagsOnPost")
   comments       Comment[]
-  comments_count Int       @default(0)
+  comments_count Int        @default(0)
   thumbnail      String?
-  is_temp        Boolean   @default(false)
+  is_temp        Boolean    @default(false)
+  like           Int        @default(0)
+  bookmarks      Bookmark[]
 }
 
 model Tag {
@@ -87,4 +90,19 @@ model Memo {
   createdAt DateTime
   updatedAt DateTime
   openType  String   @default("public")
+}
+
+model Bookmark {
+  id Int @id @default(autoincrement())
+
+  User   User @relation(fields: [userId], references: [id])
+  userId Int
+  Post   Post @relation(fields: [postId], references: [id])
+  postId Int
+
+  createdAt DateTime @default(now())
+
+  @@unique([userId, postId])
+  @@index(createdAt)
+  @@index(userId)
 }
