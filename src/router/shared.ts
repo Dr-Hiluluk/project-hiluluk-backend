@@ -1,5 +1,6 @@
 import client from "../client";
 import sanitizeHtml from "sanitize-html";
+import { Post } from "@prisma/client";
 
 export const sanitizeOption: sanitizeHtml.IOptions | undefined = {
   allowedTags: [
@@ -43,3 +44,12 @@ export const shortenTitle = (title: string) => {
     ? `${title.slice(0, limitLength)}...`
     : title;
 };
+
+export const shortAndSort = (posts: any[] | undefined) =>
+  posts
+    ?.map((post) => ({
+      ...post,
+      title: shortenTitle(post.title),
+      body: removeHtmlAndShorten(post.body),
+    }))
+    .sort((a, b) => b.id - a.id);
