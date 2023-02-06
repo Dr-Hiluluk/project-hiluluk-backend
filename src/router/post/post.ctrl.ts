@@ -1,6 +1,6 @@
 import * as express from "express";
 import { PostService } from "./post.service";
-import { removeHtmlAndShorten, shortenTitle } from "../shared";
+import { removeHtmlAndShorten, shortAndSort, shortenTitle } from "../shared";
 class PostController {
   static async createPost(req: express.Request, res: express.Response) {
     try {
@@ -87,21 +87,28 @@ class PostController {
     try {
       const word = req.query.word as string;
       const page = Number(req.query.page) || 1;
-      const result = await PostService.searchPostList({
-        word,
-        page,
-        takeNumber,
-      });
+      let result = null;
+
+      if (word[0] === "#") {
+        // tag search인 경우
+        result = await PostService.searchPostListByTag({
+          tag: word.substring(1),
+          page,
+          takeNumber,
+        });
+      } else {
+        // word search인 경우
+        result = await PostService.searchPostList({
+          word,
+          page,
+          takeNumber,
+        });
+      }
       if (!result.ok) {
         return res.status(404).json({ error: result.error });
       }
-      const postListData = result.data
-        ?.map((post) => ({
-          ...post,
-          title: shortenTitle(post.title),
-          body: removeHtmlAndShorten(post.body),
-        }))
-        .sort((a, b) => b.id - a.id);
+      const postListData = shortAndSort(result.data);
+
       res.header(
         "last-page",
         Math.ceil((result.totalPostCount || 0) / takeNumber).toString()

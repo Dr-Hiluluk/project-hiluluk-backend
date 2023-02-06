@@ -1,4 +1,14 @@
 # project_hiluluk
+
 patient information sharing site
 
-20220406 test branch3
+### Server
+
+Following items are core backend technologies used in this project:
+
+- Typescript
+- Node.js
+- Express
+- Prisma
+- Postgresql
+- Aws(s3)

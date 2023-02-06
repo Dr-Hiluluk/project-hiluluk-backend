@@ -251,7 +251,7 @@ class PostService {
     takeNumber: number;
   }) {
     try {
-      const post = await client.post.findMany({
+      const posts = await client.post.findMany({
         where: {
           OR: [
             {
@@ -268,7 +268,7 @@ class PostService {
               tags: {
                 some: {
                   content: {
-                    startsWith: word,
+                    contains: word,
                   },
                 },
               },
@@ -329,8 +329,75 @@ class PostService {
       });
       return {
         ok: true,
-        data: post,
+        data: posts,
         totalPostCount: totalPostCount,
+      };
+    } catch (e) {
+      return {
+        ok: false,
+        error: e,
+      };
+    }
+  }
+
+  static async searchPostListByTag({
+    tag,
+    page,
+    takeNumber,
+  }: {
+    tag: string;
+    page: number;
+    takeNumber: number;
+  }) {
+    try {
+      const posts = await client.post.findMany({
+        where: {
+          tags: {
+            some: {
+              content: {
+                equals: tag,
+              },
+            },
+          },
+          NOT: {
+            is_temp: {
+              equals: true,
+            },
+          },
+        },
+        include: {
+          user: {
+            select: {
+              id: true,
+              nickname: true,
+              description: true,
+              thumbnail: true,
+            },
+          },
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+        take: takeNumber,
+        skip: (page - 1) * takeNumber,
+      });
+
+      const totalPostCount = await client.post.count({
+        where: {
+          tags: {
+            some: {
+              content: {
+                equals: tag,
+              },
+            },
+          },
+        },
+      });
+
+      return {
+        ok: true,
+        data: posts,
+        totalPostCount,
       };
     } catch (e) {
       return {
