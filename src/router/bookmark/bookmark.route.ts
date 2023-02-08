@@ -1,12 +1,25 @@
 import express, { Router } from "express";
+import { AuthController } from "../auth/auth.ctrl";
 import BookmarkController from "./bookmark.ctrl";
 
 const bookmarkRouter: Router = express.Router();
 
-bookmarkRouter.get("/", BookmarkController.getBookmarks);
+bookmarkRouter.get(
+  "/",
+  AuthController.authCheck,
+  BookmarkController.getBookmarks
+);
 
-bookmarkRouter.post("/", BookmarkController.createBookmark);
+bookmarkRouter.post(
+  "/",
+  AuthController.authCheck,
+  BookmarkController.createBookmark
+);
 
-bookmarkRouter.delete("/", BookmarkController.deleteBookmark);
+bookmarkRouter.delete(
+  "/",
+  AuthController.authCheck,
+  BookmarkController.deleteBookmark
+);
 
 export default bookmarkRouter;
